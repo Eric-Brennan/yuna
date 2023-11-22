@@ -18,7 +18,6 @@ pr: none
 
 variables:
   - group: development
-  - group: app_secret
   - name: environment
     value: 'development'
   - name: major
