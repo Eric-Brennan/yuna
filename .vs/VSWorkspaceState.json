@@ -1,0 +1,17 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\app",
+    "\\app\\src",
+    "\\app\\src\\assets",
+    "\\app\\src\\assets\\img",
+    "\\app\\src\\boot",
+    "\\app\\src\\components",
+    "\\app\\src\\css",
+    "\\app\\src\\helpers",
+    "\\app\\src\\layouts",
+    "\\app\\src\\pages"
+  ],
+  "SelectedNode": "\\azure-pipelines-static-app-development.yml",
+  "PreviewInSolutionExplorer": false
+}

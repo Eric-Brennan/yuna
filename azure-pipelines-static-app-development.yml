@@ -1,0 +1,120 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+name: $(SourceBranchName)_$(date:yyyyMMdd)$(rev:.r)
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
+  paths:
+    include:
+      - /*
+
+pr: none
+
+variables:
+  - group: development
+  - group: app_secret
+  - name: environment
+    value: 'development'
+  - name: major
+    value: 1
+  - name: minor
+    value: 0
+  - name: patch
+    value: $[counter(variables['minor'], 1)]
+  - name: label
+    value: '-beta'
+  - name: version
+    value: '$(major).$(minor).$(patch)$(label)'
+
+stages:
+  - stage: "Build"
+    displayName: "Build"
+    jobs:
+      - job: 'Build'
+        displayName: "Build"
+        pool:
+          vmimage: ubuntu-latest
+        strategy:
+          matrix:
+            node_16_0_0:
+              node_version: 16.0.0
+        steps:
+          - task: NodeTool@0
+            displayName: "Spec Node JS Version"
+            inputs:
+              versionSpec: $(node_version)
+          - task: PythonScript@0
+            displayName: "Set Version"
+            inputs:
+              scriptSource: 'filePath'
+              scriptPath: '$(Build.SourcesDirectory)/app/src/scripts/setbuildversion.py'
+              arguments: '$(version) $(Build.SourcesDirectory)/app/package.json'
+          - task: Npm@1
+            displayName: "Install Dependencies"
+            inputs:
+              command: 'install'
+              workingDir: '$(Build.SourcesDirectory)/app'
+          - task: Npm@1
+            displayName: "Run Build"
+            env:
+              PACKAGE_VERSION: '$(version)'
+              HOST_ENVIRONMENT: '$(environment)'
+            inputs:
+              command: 'custom'
+              customCommand: 'run build:pwa'
+              workingDir: '$(Build.SourcesDirectory)/app'
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish Artifact"
+            inputs:
+              pathtoPublish: '$(Build.SourcesDirectory)/app/dist'
+              artifactName: 'WebApp'
+  - stage: "Deploy"
+    displayName: "Deploy"
+    dependsOn: "build"
+    condition: succeeded()
+    jobs:
+      - deployment: 'StaticWebApp'
+        displayName: "Static Web App"
+        pool:
+          vmimage: ubuntu-latest
+        environment: $(environment)
+        variables:
+          - name: website_url
+            value: 'https://lively-bay-0d66f7d03.4.azurestaticapps.net'
+        strategy: 
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureStaticWebApp@0
+                  inputs:
+                    app_location: '/WebApp/pwa'
+                    output_location: ''
+                    skip_app_build: true
+                    api_location: ''
+                    skip_api_build: true
+                    azure_static_web_apps_api_token: '$(azure_static_web_apps_api_token)'
+                    workingDirectory: '$(Pipeline.Workspace)'
+            postRouteTraffic:
+               steps:
+                 - task: Bash@3
+                   displayName: "Health Check"
+                   inputs:
+                     targetType: 'inline'
+                     script: |
+                       echo "Checking $WEBSITE_URL"
+                       result=$(curl -s -o /dev/null -w "%{http_code}" $WEBSITE_URL)
+                       echo "Http Status Code - $result"
+                       if [ "$result" == "200" ]
+                       then
+                         exit 0
+                       else
+                         exit 1
+                       fi
+                   env:
+                     WEBSITE_URL: $(website_url)

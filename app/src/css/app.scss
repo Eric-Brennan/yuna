@@ -1,0 +1,13 @@
+// app global css in SCSS form
+.image-blurred-edge {
+  /* you need to match the shadow color to your background or image border for the desired effect*/
+  box-shadow: 0 0 8px 8px white inset;
+}
+.q-timeline__subtitle{
+    text-transform: unset !important;
+    opacity: 1;
+}
+.q-img__content > div{
+    background-color: rgba($primary, .5) !important;
+    
+ }
