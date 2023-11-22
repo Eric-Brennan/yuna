@@ -134,8 +134,8 @@ module.exports = configure(function (ctx) {
       // chainWebpackCustomSW (/* chain */) {},
 
       manifest: {
-        name: `Quasar App`,
-        short_name: `Quasar App`,
+        name: `Yuna Lewis`,
+        short_name: `Yuna Lewis`,
         description: ``,
         display: 'standalone',
         orientation: 'portrait',
