@@ -66,7 +66,7 @@ stages:
               HOST_ENVIRONMENT: '$(environment)'
             inputs:
               command: 'custom'
-              customCommand: 'run build:pwa'
+              customCommand: 'run build'
               workingDir: '$(Build.SourcesDirectory)/app'
           - task: PublishBuildArtifacts@1
             displayName: "Publish Artifact"
